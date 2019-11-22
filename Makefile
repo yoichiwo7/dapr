@@ -124,7 +124,7 @@ define genBinariesForTarget
 .PHONY: $(5)/$(1)
 $(5)/$(1):
 	CGO_ENABLED=$(CGO) GOOS=$(3) GOARCH=$(4) go build $(GCFLAGS) -ldflags=$(LDFLAGS) \
-	-o $(5)/$(1) -mod=vendor \
+	-o $(5)/$(1) \
 	$(2)/main.go;
 endef
 
@@ -240,7 +240,7 @@ release: build archive
 ################################################################################
 .PHONY: test
 test:
-	go test ./pkg/... -mod=vendor
+	go test ./pkg/...
 
 ################################################################################
 # Target: lint                                                                 #
