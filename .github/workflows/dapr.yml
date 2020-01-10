@@ -28,20 +28,11 @@ jobs:
       ARCHIVE_OUTDIR: dist/archives
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        target_arch: [arm, amd64]
+        os: [ubuntu-latest]
+        target_arch: [amd64]
         include:
           - os: ubuntu-latest
             target_os: linux
-          - os: windows-latest
-            target_os: windows
-          - os: macOS-latest
-            target_os: darwin
-        exclude:
-          - os: windows-latest
-            target_arch: arm
-          - os: macOS-latest
-            target_arch: arm
     steps:
       - name: Set up Go ${{ env.GOVER }}
         uses: actions/setup-go@v1
@@ -105,7 +96,7 @@ jobs:
           path: ${{ env.ARTIFACT_DIR }}
       - name: docker login
         run: |
-          docker login -u ${{ secrets.DOCKER_REGISTRY_ID }} -p ${{ secrets.DOCKER_REGISTRY_PASS }}
+          docker login -u ${{ secrets.DOCKER_REGISTRY_ID }} -p ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish docker image
         run: |
           IMAGE_ARCHS=(amd64 arm)
