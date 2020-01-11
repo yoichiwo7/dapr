@@ -84,7 +84,7 @@ jobs:
           docker login ${{ env.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_REGISTRY_ID }} -p ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish docker image
         run: |
-          IMAGE_ARCHS=(amd64 arm)
+          IMAGE_ARCHS=(amd64)
 
           for img_arch in "${IMAGE_ARCHS[@]}"; do
             echo "Preparing linux_${img_arch} image..."
