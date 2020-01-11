@@ -81,7 +81,7 @@ jobs:
           path: ${{ env.ARTIFACT_DIR }}
       - name: docker login
         run: |
-          docker login -u ${{ secrets.DOCKER_REGISTRY_ID }} -p ${{ secrets.GITHUB_TOKEN }}
+          docker login ${{ env.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_REGISTRY_ID }} -p ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish docker image
         run: |
           IMAGE_ARCHS=(amd64 arm)
