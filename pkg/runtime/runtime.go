@@ -37,6 +37,7 @@ import (
 	secretstores_loader "github.com/dapr/dapr/pkg/components/secretstores"
 	servicediscovery_loader "github.com/dapr/dapr/pkg/components/servicediscovery"
 	state_loader "github.com/dapr/dapr/pkg/components/state"
+	"github.com/dapr/dapr/pkg/diagnostics"
 	"github.com/dapr/dapr/pkg/config"
 	"github.com/dapr/dapr/pkg/discovery"
 	"github.com/dapr/dapr/pkg/grpc"
@@ -48,6 +49,7 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/empty"
 	jsoniter "github.com/json-iterator/go"
+	"go.opencensus.io/trace"
 )
 
 const (
@@ -743,6 +745,31 @@ func (a *DaprRuntime) publishMessageHTTP(msg *pubsub.NewMessage) error {
 		Metadata: map[string]string{http_channel.HTTPVerb: http_channel.Post,
 			http_channel.ContentType: pubsub.ContentType},
 	}
+
+	// Process trace for pubsub + http route.
+	// NOTE: This is quick hack just to generate span on pubsub receiver. It must be heaviliy refined.
+	var cloudEvent pubsub.CloudEventsEnvelope
+	err := a.json.Unmarshal(msg.Data, &cloudEvent)
+	if err != nil {
+		err = fmt.Errorf("error while parsing cloudevent: %s", err)
+		log.Debug(err)
+		return err
+	}
+	var ctx context.Context
+	var span *trace.Span
+	//var ctxc context.Context
+	var spanc *trace.Span
+	if cloudEvent.CorrelationID != "" {
+		spanContext := diagnostics.DeserializeSpanContext(cloudEvent.CorrelationID)
+		ctx, span = trace.StartSpanWithRemoteParent(context.Background(), string(msg.Topic), spanContext, trace.WithSpanKind(trace.SpanKindServer))
+		_, spanc = trace.StartSpanWithRemoteParent(ctx, (msg.Topic), span.SpanContext(), trace.WithSpanKind(trace.SpanKindClient))
+	} else {
+		ctx, span = trace.StartSpan(context.Background(), string(msg.Topic), trace.WithSpanKind(trace.SpanKindServer))
+		_, spanc = trace.StartSpanWithRemoteParent(ctx, (msg.Topic), span.SpanContext(), trace.WithSpanKind(trace.SpanKindClient))
+	}
+	defer span.End()
+	defer spanc.End()
+
 
 	resp, err := a.appChannel.InvokeMethod(&req)
 	if err != nil || http.GetStatusCodeFromMetadata(resp.Metadata) != 200 {
