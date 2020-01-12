@@ -27,6 +27,8 @@ type CloudEventsEnvelope struct {
 	SpecVersion     string      `json:"specversion"`
 	DataContentType string      `json:"datacontenttype"`
 	Data            interface{} `json:"data"`
+	// Distributed Tracing extension
+	CorrelationID  string 		`json:"correlationId"`
 }
 
 // NewCloudEventsEnvelope returns a new CloudEventsEnvelope

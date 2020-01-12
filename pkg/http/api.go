@@ -791,6 +791,9 @@ func (a *api) onPublish(c *routing.Context) error {
 	body := c.PostBody()
 
 	envelope := pubsub.NewCloudEventsEnvelope(uuid.New().String(), a.id, pubsub.DefaultCloudEventType, body)
+	// TODO: embed trace-id to metadata somewhere around here
+	envelope.CorrelationID = string(c.RequestCtx.Request.Header.Peek("X-Correlation-ID"))
+
 	b, err := a.json.Marshal(envelope)
 	if err != nil {
 		msg := NewErrorResponse("ERR_PUBSUB_CLOUD_EVENTS_SER", err.Error())
